@@ -519,6 +519,19 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
     }
     .seektip.show { display: block; }
 
+    /* Regione A-B loop evidenziata sulla timeline */
+    .abband {
+      position: absolute;
+      display: none;
+      height: 5px;
+      background: rgba(232, 78, 78, 0.4);
+      border-left: 2px solid #e84e4e;
+      border-right: 2px solid #e84e4e;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 4;
+    }
+
     /* Volume */
     .vol {
       -webkit-appearance: none;
@@ -710,11 +723,13 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
       <div id="bar" class="bar">
         <input id="seek" class="seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Seek" />
         <div id="seekTip" class="seektip" aria-hidden="true"></div>
+        <div id="abBand" class="abband" aria-hidden="true"></div>
         <div class="row">
           <button id="playBtn" class="ic" title="Play / Pause (Space)" aria-label="Play / Pause"></button>
           <button id="backBtn" class="ic" title="Back 5s (←)" aria-label="Back 5 seconds"></button>
           <button id="fwdBtn" class="ic" title="Forward 5s (→)" aria-label="Forward 5 seconds"></button>
           <button id="loopBtn" class="ic" title="Loop (R)" aria-label="Loop"></button>
+          <button id="abBtn" class="ic" title="A-B loop (set A, set B, clear — or [ ] \\)" aria-label="A-B loop"></button>
           <span id="time" class="time">0:00 / 0:00</span>
           <span class="spacer"></span>
           <button id="muteBtn" class="ic" title="Mute (M)" aria-label="Mute"></button>
@@ -726,6 +741,7 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
           <span class="sep"></span>
           ${cues.length ? `<button id="ccBtn" class="ic" title="Subtitles (C)" aria-label="Subtitles"></button>` : ''}
           <button id="camBtn" class="ic" title="Capture frame (S)" aria-label="Capture frame"></button>
+          <button id="rotBtn" class="ic" title="Rotate 90° (T)" aria-label="Rotate 90 degrees"></button>
           <button id="pipBtn" class="ic" title="Picture-in-Picture (P)" aria-label="Picture-in-Picture"></button>
           <button id="fsBtn" class="ic" title="Fullscreen (F)" aria-label="Fullscreen"></button>
           <button id="helpBtn" class="ic" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts"></button>
@@ -770,6 +786,9 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
     const camBtn = document.getElementById('camBtn');
     const ccBtn = document.getElementById('ccBtn');
     const loopBtn = document.getElementById('loopBtn');
+    const abBtn = document.getElementById('abBtn');
+    const abBand = document.getElementById('abBand');
+    const rotBtn = document.getElementById('rotBtn');
     const helpBtn = document.getElementById('helpBtn');
     const help = document.getElementById('help');
     const helpGrid = document.getElementById('helpGrid');
@@ -796,7 +815,9 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
       cc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M10 10.5a2 2 0 1 0 0 3M16 10.5a2 2 0 1 0 0 3" stroke-linecap="round"/></svg>',
       cam: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3"/></svg>',
       loop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
-      help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.3c-0.8 0.4-1 0.9-1 1.6" stroke-linecap="round"/><circle cx="12" cy="16.6" r="0.6" fill="currentColor" stroke="none"/></svg>'
+      help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.3c-0.8 0.4-1 0.9-1 1.6" stroke-linecap="round"/><circle cx="12" cy="16.6" r="0.6" fill="currentColor" stroke="none"/></svg>',
+      rotate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg>',
+      ab: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6v12M19 6v12"/><path d="M9 9l-3 3 3 3"/><path d="M15 9l3 3-3 3"/></svg>'
     };
 
     playBtn.innerHTML = IC.play;
@@ -808,6 +829,9 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
     camBtn.innerHTML = IC.cam;
     loopBtn.innerHTML = IC.loop;
     loopBtn.style.opacity = '0.5'; // off di default
+    abBtn.innerHTML = IC.ab;
+    abBtn.style.opacity = '0.5'; // nessun punto impostato
+    rotBtn.innerHTML = IC.rotate;
     helpBtn.innerHTML = IC.help;
     if (ccBtn) { ccBtn.innerHTML = IC.cc; }
     // Picture-in-Picture: nascondi il pulsante se il webview non lo supporta.
@@ -959,11 +983,12 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
       savePrefs();
     });
     player.addEventListener('timeupdate', () => {
+      checkAbLoop();
       if (useExternal && !player.paused) { syncTime(); }
       updateTime();
       savePos();
     });
-    player.addEventListener('durationchange', updateTime);
+    player.addEventListener('durationchange', () => { updateTime(); updateAbBand(); });
 
     // Ripresa dalla posizione salvata + aggiornamento timeline a metadati pronti.
     let resumed = false;
@@ -1082,6 +1107,76 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
     }
     loopBtn.addEventListener('click', toggleLoop);
 
+    // --- Rotazione 90° (adatta la scala così il video ruotato resta dentro il pannello) ---
+    let rotation = 0; // 0 / 90 / 180 / 270
+    function applyRotation() {
+      const w = player.clientWidth, h = player.clientHeight;
+      if (rotation === 0) {
+        player.style.transform = '';
+      } else {
+        let t = 'rotate(' + rotation + 'deg)';
+        if (rotation % 180 !== 0 && w && h) {
+          const s = Math.min(wrap.clientWidth / h, wrap.clientHeight / w);
+          t += ' scale(' + s + ')';
+        }
+        player.style.transform = t;
+      }
+      rotBtn.style.opacity = rotation === 0 ? '0.5' : '1';
+    }
+    function rotate90() {
+      rotation = (rotation + 90) % 360;
+      applyRotation();
+      showStatus('Rotated ' + rotation + '°', false);
+      setTimeout(hideStatus, 700);
+      showBar();
+    }
+    rotBtn.addEventListener('click', rotate90);
+
+    // --- A-B loop: ripeti solo il segmento tra A e B ---
+    let abA = null, abB = null;
+    function abBanner(msg) { showStatus(msg, false); setTimeout(hideStatus, 1000); }
+    function reflectAb() {
+      abBtn.style.opacity = (abA != null && abB != null) ? '1' : (abA != null ? '0.75' : '0.5');
+    }
+    function setAbA() {
+      abA = player.currentTime;
+      if (abB != null && abB <= abA) { abB = null; }
+      abBanner('Loop A set — now set B'); reflectAb(); updateAbBand();
+    }
+    function setAbB() {
+      if (abA == null) { abBanner('Set point A first'); return; }
+      const t = player.currentTime;
+      if (t > abA) { abB = t; } else { abB = abA; abA = t; } // ordina A < B
+      abBanner('A-B loop on'); reflectAb(); updateAbBand();
+    }
+    function clearAb() { abA = abB = null; abBanner('A-B loop cleared'); reflectAb(); updateAbBand(); }
+    function cycleAb() { if (abA == null) { setAbA(); } else if (abB == null) { setAbB(); } else { clearAb(); } }
+    abBtn.addEventListener('click', cycleAb);
+    function checkAbLoop() {
+      if (abA != null && abB != null && abB > abA + 0.05 && player.currentTime >= abB) {
+        player.currentTime = abA;
+        if (useExternal) { audio.currentTime = abA; }
+      }
+    }
+    function updateAbBand() {
+      const d = player.duration || 0;
+      if (abA == null || abB == null || !d) { abBand.style.display = 'none'; return; }
+      const rect = seek.getBoundingClientRect();
+      const barRect = bar.getBoundingClientRect();
+      if (!rect.width) { abBand.style.display = 'none'; return; }
+      const fa = Math.max(0, Math.min(1, abA / d));
+      const fb = Math.max(0, Math.min(1, abB / d));
+      abBand.style.display = 'block';
+      abBand.style.left = (rect.left - barRect.left + fa * rect.width) + 'px';
+      abBand.style.width = Math.max(3, (fb - fa) * rect.width) + 'px';
+      abBand.style.top = (rect.top - barRect.top) + 'px';
+    }
+    // Ricalcola rotazione/banda quando cambia la geometria del pannello.
+    window.addEventListener('resize', () => {
+      if (rotation !== 0) { applyRotation(); }
+      updateAbBand();
+    });
+
     // --- Velocità ---
     function setRate(r) {
       r = Math.min(2, Math.max(0.25, Math.round(r * 100) / 100));
@@ -1113,6 +1208,8 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
       vscodeApi.postMessage({ type: 'toggleZen' });
       zen = !zen;
       fsBtn.innerHTML = zen ? IC.fsOut : IC.fsIn;
+      // Zen mode ridimensiona il pannello con una transizione: ricalcola dopo.
+      setTimeout(() => { if (rotation !== 0) { applyRotation(); } updateAbBand(); }, 350);
     }
     fsBtn.addEventListener('click', toggleFs);
 
@@ -1137,10 +1234,18 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
     let capturedData = null;
     function captureFrame() {
       if (!player.videoWidth) { return; }
+      const vw = player.videoWidth, vh = player.videoHeight;
       const c = document.createElement('canvas');
-      c.width = player.videoWidth;
-      c.height = player.videoHeight;
-      c.getContext('2d').drawImage(player, 0, 0, c.width, c.height);
+      const ctx = c.getContext('2d');
+      if (rotation === 90 || rotation === 270) { c.width = vh; c.height = vw; }
+      else { c.width = vw; c.height = vh; }
+      if (rotation) {
+        ctx.translate(c.width / 2, c.height / 2);
+        ctx.rotate(rotation * Math.PI / 180);
+        ctx.drawImage(player, -vw / 2, -vh / 2, vw, vh);
+      } else {
+        ctx.drawImage(player, 0, 0, vw, vh);
+      }
       try { capturedData = c.toDataURL('image/png'); } catch (e) { capturedData = null; return; }
       capMenu.classList.add('open');
       showBar();
@@ -1242,6 +1347,9 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
       ['< / >', 'Slower / faster'],
       ['M', 'Mute'],
       ['R', 'Loop'],
+      ['[ / ]', 'Set A-B loop point A / B'],
+      ['\\\\', 'Clear A-B loop'],
+      ['T', 'Rotate 90°'],
       ['S', 'Capture frame'],
     ];
     if (document.pictureInPictureEnabled) { SHORTCUTS.push(['P', 'Picture-in-Picture']); }
@@ -1341,6 +1449,10 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
           break;
         case ',': stepFrame(-1); break;
         case '.': stepFrame(1); break;
+        case 't': rotate90(); break;
+        case '[': setAbA(); break;
+        case ']': setAbB(); break;
+        case '\\\\': clearAb(); break;
         case '?':
           e.preventDefault();
           toggleHelp();

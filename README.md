@@ -21,6 +21,7 @@ another by splitting the editor — no external windows.
 
 ## What's new
 
+- **0.8.9** — **Rotate 90°** (`T`) for sideways phone videos, and **A-B loop** (`[` `]`) to repeat a segment.
 - **0.8.8** — Timeline **time tooltip**: hover the progress bar to preview the exact timestamp before you click.
 - **0.8.7** — Refreshed **glass control bar**, a **keyboard-shortcuts overlay** (`?`), and **frame-by-frame** stepping (`,` / `.`).
 - **0.8.5** — **Audio boost** to 200%, **loop**, and **subtitle timing** nudge (`Z` / `X`).
@@ -46,7 +47,7 @@ players without giving up the things that made the simple ones safe.
 - 🎬 **HEVC / H.265 and WebM (VP9/VP8) too** — converted to H.264 on the fly, since VS Code can't decode them natively
 - ⚡ **Zero setup** — `ffmpeg` is bundled; nothing to install
 - 🔒 **Secure & offline** — no network, no local server, read-only editor, strict CSP
-- 🎛️ **Modern control bar** — a floating glass panel with a seekable timeline (**hover to preview the timestamp**), speed (0.25×–2×), **audio boost to 200%**, **loop**, **frame-by-frame** (`,`/`.`), Picture-in-Picture, fullscreen, and a **shortcuts overlay** (`?`)
+- 🎛️ **Modern control bar** — a floating glass panel with a seekable timeline (**hover to preview the timestamp**), speed (0.25×–2×), **audio boost to 200%**, **loop** & **A-B loop**, **rotate 90°**, **frame-by-frame** (`,`/`.`), Picture-in-Picture, fullscreen, and a **shortcuts overlay** (`?`)
 - 📝 **Subtitles, zero config** — drop a `.srt`/`.vtt` with the same name next to the video and it just appears (SRT is converted on the fly); toggle with `C`
 - 📸 **Grab a frame, paste anywhere** — `S` captures the current frame so you can **Copy** it straight into a chat with your AI assistant, an issue or a doc — or **Save** it as a PNG. No screenshot tool, no leaving VS Code
 - 💾 **Remembers** your volume, speed and **resume position** per file
@@ -120,6 +121,9 @@ decode), it is converted to H.264 on the fly instead of just repackaged.
 | `<` / `>` | Slower / Faster (0.25×–2×) |
 | `M` | Mute |
 | `R` | Loop on/off |
+| `[` / `]` | Set A-B loop point A / B |
+| `\` | Clear A-B loop |
+| `T` | Rotate 90° |
 | `P` | Picture-in-Picture |
 | `S` | Capture frame (copy or save as PNG) |
 | `C` | Subtitles on/off |

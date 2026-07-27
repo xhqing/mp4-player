@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.8.9] - 2026-07-27
+
+### Added
+- **Rotate 90°** — rotate the picture with the toolbar button or `T` (cycles
+  90°/180°/270°/0°); great for phone videos shot sideways. The frame is auto-scaled
+  to stay inside the pane, and frame capture follows the rotation.
+- **A-B loop** — repeat just a segment: set point **A** and **B** (toolbar button, or
+  `[` and `]`), clear with `\`. The looped region is highlighted on the timeline.
+
 ## [0.8.8] - 2026-07-17
 
 ### Added
