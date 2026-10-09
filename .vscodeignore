@@ -1,5 +1,6 @@
 .github/**
 .vscode/**
+tmp/**
 assets/icon-src.*
 assets/README.md
 assets/demo.gif

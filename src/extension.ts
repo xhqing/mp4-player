@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { randomBytes, createHash } from 'crypto';
+import { spawn } from 'child_process';
+import { pathToFileURL } from 'url';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -107,9 +109,143 @@ function maybeAskForRating(context: vscode.ExtensionContext): void {
     });
 }
 
+// --- File actions from the webview context menu ------------------------------
+// VS Code adds generic Cut/Copy/Paste entries to every webview context menu:
+// on a video they do nothing (there is no selectable content to copy), which is
+// confusing. The player hides them (`preventDefaultContextMenuItems`) and offers
+// actions on the real file instead: put the file on the system clipboard, copy
+// its path, or reveal it in the OS file manager. The webview forwards the file
+// URI through `data-vscode-context`, so each command knows its target.
+
+/** Player panels currently open, used to resolve commands invoked with no context. */
+const players = new Map<vscode.WebviewPanel, vscode.Uri>();
+
+/** File targeted by a context-menu command: the URI forwarded by the webview,
+ *  falling back to the active (or only) player panel. */
+function resolvePlayerUri(menuContext?: unknown): vscode.Uri | undefined {
+  const raw =
+    menuContext && typeof menuContext === 'object'
+      ? (menuContext as Record<string, unknown>).mp4PlayerUri
+      : undefined;
+  if (typeof raw === 'string') {
+    try {
+      return vscode.Uri.parse(raw);
+    } catch {
+      /* not a URI: fall back to the active panel */
+    }
+  }
+  const active = [...players.entries()].find(([panel]) => panel.active);
+  if (active) {
+    return active[1];
+  }
+  return players.size === 1 ? [...players.values()][0] : undefined;
+}
+
+interface ClipboardWrite {
+  cmd: string;
+  args: string[];
+  /** Text piped to the child's stdin (URI-list based tools). */
+  input?: string;
+}
+
+/** Platform commands that put a real FILE on the system clipboard (a Finder /
+ *  Explorer copy, not just its path), tried in order until one succeeds. */
+function fileClipboardWrites(fsPath: string): ClipboardWrite[] {
+  if (process.platform === 'darwin') {
+    return [
+      {
+        cmd: 'osascript',
+        args: ['-e', `set the clipboard to (POSIX file ${JSON.stringify(fsPath)})`],
+      },
+    ];
+  }
+  if (process.platform === 'win32') {
+    const quoted = fsPath.replace(/'/g, "''");
+    const script =
+      'Add-Type -AssemblyName System.Windows.Forms; ' +
+      '$files = New-Object System.Collections.Specialized.StringCollection; ' +
+      `[void]$files.Add('${quoted}'); ` +
+      '[System.Windows.Forms.Clipboard]::SetFileDropList($files)';
+    return [{ cmd: 'powershell.exe', args: ['-NoProfile', '-NonInteractive', '-Command', script] }];
+  }
+  // Linux: X11 or Wayland, via the standard file URI list.
+  const input = pathToFileURL(fsPath).href + '\n';
+  return [
+    { cmd: 'wl-copy', args: ['--type', 'text/uri-list'], input },
+    { cmd: 'xclip', args: ['-selection', 'clipboard', '-t', 'text/uri-list'], input },
+  ];
+}
+
+function runClipboardWrite(write: ClipboardWrite): Promise<boolean> {
+  return new Promise((resolve) => {
+    const child = spawn(write.cmd, write.args, { stdio: ['pipe', 'ignore', 'ignore'] });
+    child.on('error', () => resolve(false)); // tool not installed: try the next one
+    child.on('close', (code) => resolve(code === 0));
+    child.stdin?.end(write.input ?? '');
+  });
+}
+
+async function copyVideoFile(menuContext?: unknown): Promise<void> {
+  const uri = resolvePlayerUri(menuContext);
+  if (!uri) {
+    void vscode.window.showWarningMessage('Video Player: no active video to act on.');
+    return;
+  }
+  for (const write of fileClipboardWrites(uri.fsPath)) {
+    if (await runClipboardWrite(write)) {
+      void vscode.window.showInformationMessage(
+        'Video file copied to the clipboard — paste it into another app (a chat, an e-mail, …).',
+      );
+      return;
+    }
+  }
+  // No clipboard tool worked: fall back to the path, so something useful lands.
+  await vscode.env.clipboard.writeText(uri.fsPath);
+  void vscode.window.showWarningMessage(
+    'Could not put the video file on the clipboard — its path was copied instead.',
+  );
+}
+
+async function copyVideoPath(menuContext?: unknown): Promise<void> {
+  const uri = resolvePlayerUri(menuContext);
+  if (!uri) {
+    void vscode.window.showWarningMessage('Video Player: no active video to act on.');
+    return;
+  }
+  await vscode.env.clipboard.writeText(uri.fsPath);
+  void vscode.window.showInformationMessage('Video path copied to the clipboard.');
+}
+
+async function revealVideoFile(menuContext?: unknown): Promise<void> {
+  const uri = resolvePlayerUri(menuContext);
+  if (!uri) {
+    void vscode.window.showWarningMessage('Video Player: no active video to act on.');
+    return;
+  }
+  try {
+    await vscode.commands.executeCommand('revealFileInOS', uri);
+  } catch {
+    void vscode.window.showWarningMessage(`Could not open the file manager for: ${uri.fsPath}`);
+  }
+}
+
+/** JSON made safe for a single-quoted HTML attribute (`data-vscode-context`). */
+function escapeHtmlAttribute(json: string): string {
+  return json
+    .replace(/&/g, '&amp;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 /** Punto di ingresso dell'estensione. */
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(Mp4EditorProvider.register(context));
+  context.subscriptions.push(
+    vscode.commands.registerCommand('mp4Player.copyFile', copyVideoFile),
+    vscode.commands.registerCommand('mp4Player.copyPath', copyVideoPath),
+    vscode.commands.registerCommand('mp4Player.revealFile', revealVideoFile),
+  );
   // Pulizia della cache audio in background (non blocca l'avvio).
   setTimeout(cleanupCache, 3000);
 }
@@ -173,8 +309,10 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
     const cues = findSubtitle(fsPath);
 
     let disposed = false;
+    players.set(webviewPanel, document.uri);
     webviewPanel.onDidDispose(() => {
       disposed = true;
+      players.delete(webviewPanel);
     });
 
     webviewPanel.webview.onDidReceiveMessage(
@@ -237,7 +375,13 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
     if (nativeContainer) {
       // MP4/MOV/M4V: il webview riproduce il file direttamente; estraiamo l'audio.
       const videoUri = webviewPanel.webview.asWebviewUri(document.uri);
-      webviewPanel.webview.html = this.getHtml(webviewPanel.webview, prefs, videoUri, cues);
+      webviewPanel.webview.html = this.getHtml(
+        webviewPanel.webview,
+        document.uri,
+        prefs,
+        videoUri,
+        cues,
+      );
       once('audio:' + fsPath, () => prepareAudio(fsPath, tempDir))
         .then((res) => {
           if (disposed) {
@@ -257,7 +401,13 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
     } else {
       // MKV/AVI: il webview non apre il contenitore. Rimuxiamo il video (H.264)
       // in un MP4 temporaneo e lo inviamo, più l'audio in MP3.
-      webviewPanel.webview.html = this.getHtml(webviewPanel.webview, prefs, undefined, cues);
+      webviewPanel.webview.html = this.getHtml(
+        webviewPanel.webview,
+        document.uri,
+        prefs,
+        undefined,
+        cues,
+      );
       const onTranscode = (): void => {
         if (!disposed) {
           webviewPanel.webview.postMessage({ type: 'converting' });
@@ -307,11 +457,20 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
 
   private getHtml(
     webview: vscode.Webview,
+    fileUri: vscode.Uri,
     prefs: Prefs,
     videoUri?: vscode.Uri,
     cues: Cue[] = [],
   ): string {
     const nonce = getNonce();
+    // Context for the webview context menu: hide VS Code's default Cut/Copy/Paste
+    // (useless on a video) and forward the file URI to our menu commands.
+    const menuContext = escapeHtmlAttribute(
+      JSON.stringify({
+        preventDefaultContextMenuItems: true,
+        mp4PlayerUri: fileUri.toString(),
+      }),
+    );
     const csp = [
       `default-src 'none'`,
       `media-src ${webview.cspSource}`,
@@ -703,7 +862,7 @@ class Mp4EditorProvider implements vscode.CustomReadonlyEditorProvider {
     }
   </style>
 </head>
-<body>
+<body data-vscode-context='${menuContext}'>
   <div class="stage">
     <div id="wrap" class="wrap">
       <video id="player" preload="metadata">

@@ -110,7 +110,48 @@
         ],
         "priority": "default"
       }
-    ]
+    ],
+    "commands": [
+      {
+        "command": "mp4Player.copyFile",
+        "title": "Copy Video File",
+        "category": "Video Player"
+      },
+      {
+        "command": "mp4Player.copyPath",
+        "title": "Copy File Path",
+        "category": "Video Player"
+      },
+      {
+        "command": "mp4Player.revealFile",
+        "title": "Show in Folder",
+        "category": "Video Player"
+      }
+    ],
+    "menus": {
+      "webview/context": [
+        {
+          "command": "mp4Player.copyFile",
+          "when": "webviewId == 'mp4Player.preview'",
+          "group": "9_file@1"
+        },
+        {
+          "command": "mp4Player.copyPath",
+          "when": "webviewId == 'mp4Player.preview'",
+          "group": "9_file@2"
+        },
+        {
+          "command": "mp4Player.revealFile",
+          "when": "webviewId == 'mp4Player.preview'",
+          "group": "9_file@3"
+        }
+      ],
+      "commandPalette": [
+        { "command": "mp4Player.copyFile", "when": "false" },
+        { "command": "mp4Player.copyPath", "when": "false" },
+        { "command": "mp4Player.revealFile", "when": "false" }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
