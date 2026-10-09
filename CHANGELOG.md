@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### Added
+- **Context menu on the video file** — right-click inside the player for actions
+  that make sense on a video: **Copy Video File** (copies the file itself to the
+  system clipboard, so it can be pasted into a chat, an e-mail, a file manager or
+  any other app), **Copy File Path** and **Show in Folder** (Finder / File
+  Explorer / file manager).
+
+### Changed
+- **No more dead Cut / Copy / Paste entries** — VS Code adds them to every webview
+  context menu; on a video they silently did nothing (there is no selectable
+  content to copy), which looked broken. They are now hidden in the player
+  (`preventDefaultContextMenuItems`) and replaced by the file actions above.
+- Development: local test builds (`tmp/`) are ignored by git and by packaging.
+
 ## [0.8.9] - 2026-07-27
 
 ### Added

@@ -109,6 +109,11 @@ decode), it is converted to H.264 on the fly instead of just repackaged.
   then **Copy** it to the clipboard or **Save** it as a PNG. *Copy* is the handy
   one: paste the still straight into a chat with your AI assistant, a bug report or
   some notes — without a separate screenshot tool and without leaving VS Code.
+- **Right-click menu on the file**: VS Code's generic Cut/Copy/Paste entries are
+  hidden inside the player — they can't do anything with a video. Instead you get
+  actions on the file itself: **Copy Video File** (the file goes on the system
+  clipboard, ready to paste into a chat, an e-mail or a file manager), **Copy File
+  Path** and **Show in Folder** (Finder / File Explorer).
 
 ## Keyboard shortcuts
 

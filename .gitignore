@@ -2,5 +2,8 @@ node_modules/
 out/
 *.vsix
 
+# Build locali di prova (pacchetti VSIX), non pubblicare
+tmp/
+
 # Analisi interna, non pubblicare
 docs/
