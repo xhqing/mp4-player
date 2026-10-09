@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.9.2] - 2026-10-09
+
+### Changed
+- **Atlas sub-project list sync (zcode-cli / cmux-launcher shelving note)** — the embedded
+  FullStackEngineerAgent CLAUDE.md text now marks zcode-cli and cmux-launcher as
+  short-term shelved (2026-10-09), in both the projects-in-hand line and the
+  sub-project list.
+
 ## [0.9.1] - 2026-10-09
 
 ### Changed
