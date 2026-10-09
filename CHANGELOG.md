@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### Changed
+- **GitHub Release is created by a single flow** — the tag-triggered
+  `.github/workflows/release.yml` duplicated the release flow, and the two raced when
+  both created the GitHub Release for the same tag (hit on the 0.9.0 release: the
+  local asset upload returned 404 and the release was re-created afterwards). The
+  workflow is removed; releases are created from `main` with the vsix built locally
+  and attached to the GitHub Release.
+
+### Added
+- **Project guide** — `CLAUDE.md` (with the `AGENTS.md` symlink) documents who
+  maintains this repository and how it is developed and released.
+
 ## [0.9.0] - 2026-10-09
 
 ### Added
