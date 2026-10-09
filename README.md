@@ -21,6 +21,7 @@ another by splitting the editor — no external windows.
 
 ## What's new
 
+- **0.9.0** — **File actions in the player's right-click menu**: **Copy Video File** (the file itself goes to the clipboard), **Copy File Path**, **Show in Folder** — and no more dead **Cut / Copy / Paste** entries.
 - **0.8.9** — **Rotate 90°** (`T`) for sideways phone videos, and **A-B loop** (`[` `]`) to repeat a segment.
 - **0.8.8** — Timeline **time tooltip**: hover the progress bar to preview the exact timestamp before you click.
 - **0.8.7** — Refreshed **glass control bar**, a **keyboard-shortcuts overlay** (`?`), and **frame-by-frame** stepping (`,` / `.`).
