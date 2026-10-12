@@ -2,7 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
-## [0.9.2] - 2026-10-09
+## [0.9.3] - 2026-10-12
+
+### 变更
+
+- **迁移项目指南到 `DEVELOPMENT.md`，删除智能体专属文件**（2026-10-12 新规）：`CLAUDE.md` / `AGENTS.md` / `.claude/` / `.pi/` 等智能体专属文件不再保留；有价值内容（项目指南 / 上游开发规则等）已迁入普通文档。
+
 
 ### Changed
 - **Atlas sub-project list sync (zcode-cli / cmux-launcher shelving note)** — the embedded
