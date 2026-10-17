@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [未发布]
+
+### 变更
+
+- **挂载「Agent 进驻」软链接（2026-10-17 用户修订）**：为什么改——用户 2026-10-17 修订智能体专属文件规则：实体只属负责的 Agent 项目（Atlas / FullStackEngineerAgent），子项目改挂两条指回 Agent 项目的软链接，在子项目目录开会话即继承 Atlas 的身份 / 规则 / 技能；详见全局 `agents-registry.md`「智能体专属文件归属与子项目映射（2026-10-17 修订）」。改了什么：新增 `AGENTS.md → ../FullStackEngineerAgent/AGENTS.md`、`.pi → ../FullStackEngineerAgent/.pi` 两条相对软链接并随仓库提交（单独 clone 时链接悬空、无害）；两条链接已加入 `.vscodeignore`、不随 vsix 打包（打包器对悬空软链接 stat 失败，2026-10-17 CI 实测）。
+
 ## [0.9.3] - 2026-10-12
 
 ### 变更

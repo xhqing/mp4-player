@@ -11,3 +11,6 @@ tsconfig.json
 **/*.map
 **/*.ts
 out/**/*.test.js
+AGENTS.md
+.pi
+.pi/**
