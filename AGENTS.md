@@ -1,0 +1,1 @@
+../FullStackEngineerAgent/AGENTS.md
