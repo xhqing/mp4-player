@@ -1,0 +1,18 @@
+{
+  "extensions": [
+    "~/Developer/FullStackEngineerAgent/.pi/extensions",
+    "./extensions"
+  ],
+  "skills": [
+    "~/Developer/FullStackEngineerAgent/.pi/skills",
+    "./skills"
+  ],
+  "prompts": [
+    "~/Developer/FullStackEngineerAgent/.pi/prompts",
+    "./prompts"
+  ],
+  "themes": [
+    "~/Developer/FullStackEngineerAgent/.pi/themes",
+    "./themes"
+  ]
+}
