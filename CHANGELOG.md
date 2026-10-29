@@ -6,6 +6,8 @@ All notable changes to this project are documented in this file.
 
 ### 变更
 
+- **子项目 `.pi` 由软链接改为真实目录 + 资源引用（2026-10-30 全局规则修订）**：为什么改——用户 2026-10-30 修订「智能体专属文件」规则，旧做法把本仓库 `.pi` 整个软链接到 `~/Developer/FullStackEngineerAgent/.pi`，等于把「共享」和「独占」压在同一个符号上：本仓库往 `.pi` 写任何文件都会直接落进 Agent 项目、影响全部兄弟子项目并进它的 git 历史；而 `AGENTS.md` 没有 include 机制，想用复制做超集又必然随 Agent 侧演进而漂移。改了什么——①删除 `.pi → ../FullStackEngineerAgent/.pi` 软链接，改为本仓库自己的**真实目录** `.pi/`；②新增 `.pi/settings.json`，用路径把 Agent 项目的 `extensions` / `skills` / `prompts` / `themes` 四个资源目录引用进来，并保留本地的同名目录（本地新增资源由自动发现处理、不必写进 settings）；③`AGENTS.md → ../FullStackEngineerAgent/AGENTS.md` 软链接保持不变（身份层直接对齐、不做超集）。纪律：本仓库 `.pi/` 只允许**追加**（自己的资源目录、`.pi/APPEND_SYSTEM.md`），不允许重述 / 覆盖基座规则；子项目专属规则用 `APPEND_SYSTEM.md`，不要用 `SYSTEM.md`（后者是整体替换，会把 agent 身份冲掉）。详见全局 `~/.pi/agent/docs/agents-registry.md`「智能体专属文件归属与子项目映射（2026-10-30 修订）」。`.vscodeignore` 已含 `.pi` 与 `.pi/**`，故新形态下的 `settings.json` 同样不随 vsix 打包。
+
 - **文档路径口径更新（2026-10-17）：全局权威源迁至 `~/.pi/agent/`**：DEVELOPMENT.md 一处引用更新——通用工作规则指向 `~/.claude/CLAUDE.md` → `~/.pi/agent/CLAUDE.md`（2026-10-17 全局权威源迁移；hooks 除外）。
 
 - **挂载「Agent 进驻」软链接（2026-10-17 用户修订）**：为什么改——用户 2026-10-17 修订智能体专属文件规则：实体只属负责的 Agent 项目（Atlas / FullStackEngineerAgent），子项目改挂两条指回 Agent 项目的软链接，在子项目目录开会话即继承 Atlas 的身份 / 规则 / 技能；详见全局 `agents-registry.md`「智能体专属文件归属与子项目映射（2026-10-17 修订）」。改了什么：新增 `AGENTS.md → ../FullStackEngineerAgent/AGENTS.md`、`.pi → ../FullStackEngineerAgent/.pi` 两条相对软链接并随仓库提交（单独 clone 时链接悬空、无害）；两条链接已加入 `.vscodeignore`、不随 vsix 打包（打包器对悬空软链接 stat 失败，2026-10-17 CI 实测）。
