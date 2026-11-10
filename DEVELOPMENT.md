@@ -2,7 +2,7 @@
 
 ## 负责工程师：Atlas
 
-本项目由 **Atlas**（FullStackEngineerAgent，用户的全栈开发工程师）负责维护——本项目内的开发 / 维护需求由 Atlas 统一处理（Atlas 的角色定义与工作原则见 FullStackEngineerAgent 项目根 `AGENTS.md`）。
+本项目由 **Atlas**（dev-agent，用户的全栈开发工程师）负责维护——本项目内的开发 / 维护需求由 Atlas 统一处理（Atlas 的角色定义与工作原则见 dev-agent 项目根 `AGENTS.md`）。
 
 具体任务由 Atlas 派的 **Worker 会话**在本项目的 worktree 里执行：Worker 负责改代码 / 跑测试 / 提交 / 开 PR，Atlas（Leader）负责 local main 同步、建 worktree、收尾清理与向用户汇报。本项目要 Worker 遵守的硬约束写在 `.pi/APPEND_SYSTEM.md`（会话启动自动加载），本文件负责详细说明。
 

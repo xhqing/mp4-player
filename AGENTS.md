@@ -1,12 +1,12 @@
 # mp4-player
 
-> FullStackEngineerAgent（Atlas）名下的子项目 · 本项目规则本体
+> dev-agent（Atlas）名下的子项目 · 本项目规则本体
 
 VSCode 视频播放扩展：视频在编辑器标签页里带声音播放；Chromium 解不了的 AAC 音频与 HEVC / WebM 转码由内置 ffmpeg WebAssembly 在本地完成。严格 CSP、无本地服务、零外部依赖。
 
 ## 归谁负责
 
-本项目由 **Atlas**（FullStackEngineerAgent）负责维护。改动范围跨出本项目时，先向 Atlas 说明，不自行扩张改动面。
+本项目由 **Atlas**（dev-agent）负责维护。改动范围跨出本项目时，先向 Atlas 说明，不自行扩张改动面。
 
 ## 你的角色
 
