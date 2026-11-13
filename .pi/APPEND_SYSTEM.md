@@ -23,6 +23,15 @@ VSCode 视频播放扩展：视频在编辑器标签页里带声音播放（MP4 
 - 改播放器 / 解码相关逻辑时，实测至少两种格式（一种浏览器原生可解、一种需要 wasm 转码）。
 - 涉及 CSP 的改动要确认 WebAssembly 仍能加载，不要为了「修 CSP 报错」放宽到 `unsafe-eval` 之外更宽的程度。
 
+## 测试文件对 Worker 只读（2026-11-13 立）
+
+测试由 **Leader（dev-agent / Atlas 的会话）在实现开工前**写好，以功能分支上的本地 commit 形式存在。你（Worker）对测试文件**只能读、只能运行**：
+
+- **禁止新建 / 修改 / 删除 / 移动**任何测试文件与测试基础设施：本项目的测试位置是 `src/*.test.ts`（`out/` 是构建产物，不算测试源）；含 fixtures / helpers / conftest 等伴生文件（跑测试缺了也不自己补）。
+- **碰到测试跑不通、断言与 Issue 预期不符 → 终止开发、上报 Leader（`Atlas`）或用户裁决**，绝不改测试迁就实现——这是 LLM 的典型失败模式（改不动代码就放宽断言）。
+- **`# TEST_CASES_WRITE_OK` 标记的签发权在 Leader**，你不加；被 `test-cases-guard` 拦下时不要绕过。
+- 例外：测试运行自产的缓存与构建产物（`__pycache__`、`.pytest_cache`、coverage 输出、`out/` 等）可清理，走授权标记通道。
+
 ## 详细说明
 
 开发与发布约定见项目根 `DEVELOPMENT.md`；通用工作规则见全局 `~/.pi/agent/AGENTS.md`。
