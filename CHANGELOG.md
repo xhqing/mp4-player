@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## [未发布]
 
+### 变更（AGENTS.md 角色口径更新为三级 agentLeader / subLeader / Worker，2026-11-25）
+
+- **为什么改**：用户 2026-11-25 把全团队 Leader / Worker 重定义为三级角色（agentLeader = Agent 项目主工作区 main、subLeader = 子项目主工作区 main、Worker = 任何项目的非 main 分支 worktree）。原 `AGENTS.md` 写的是「本项目（或其 worktree）= Worker、建删 worktree 是 Atlas（Leader）的活」，把子项目主工作区 main 也说成了 Worker，与全局规则冲突。
+- **改了什么**：`AGENTS.md`「你的角色」节改为按「当前是否停在 main」判定——本项目主工作区 main = subLeader（ff 同步 local main、建删自身 worktree、派 Worker、合并自身 PR、发自身版本、回收 Worker，对 dev-agent 与 sibling 只读），非 main 分支 worktree = Worker（只干当前 worktree，不碰 local main、不建删 worktree）；规则索引表里的「Leader / Worker 分工」改为「agentLeader / subLeader / Worker 分工」。`.pi/APPEND_SYSTEM.md` 逐条核对：没有「任何分支 / worktree = Worker」类角色定义，测试只读节里的「Leader」按全局术语口径保留，未改。
+- **回归检查**：只改角色表述，项目硬约束、验证要求、测试只读约定一字未动；版本号不动（文档类改动，不触发 bump / 发版）。
+
 ### 变更
 
 - **子项目 `.pi` 由软链接改为真实目录 + 资源引用（2026-10-30 全局规则修订）**：为什么改——用户 2026-10-30 修订「智能体专属文件」规则，旧做法把本仓库 `.pi` 整个软链接到 `~/Developer/FullStackEngineerAgent/.pi`，等于把「共享」和「独占」压在同一个符号上：本仓库往 `.pi` 写任何文件都会直接落进 Agent 项目、影响全部兄弟子项目并进它的 git 历史；而 `AGENTS.md` 没有 include 机制，想用复制做超集又必然随 Agent 侧演进而漂移。改了什么——①删除 `.pi → ../FullStackEngineerAgent/.pi` 软链接，改为本仓库自己的**真实目录** `.pi/`；②新增 `.pi/settings.json`，用路径把 Agent 项目的 `extensions` / `skills` / `prompts` / `themes` 四个资源目录引用进来，并保留本地的同名目录（本地新增资源由自动发现处理、不必写进 settings）；③`AGENTS.md → ../FullStackEngineerAgent/AGENTS.md` 软链接保持不变（身份层直接对齐、不做超集）。纪律：本仓库 `.pi/` 只允许**追加**（自己的资源目录、`.pi/APPEND_SYSTEM.md`），不允许重述 / 覆盖基座规则；子项目专属规则用 `APPEND_SYSTEM.md`，不要用 `SYSTEM.md`（后者是整体替换，会把 agent 身份冲掉）。详见全局 `~/.pi/agent/docs/agents-registry.md`「智能体专属文件归属与子项目映射（2026-10-30 修订）」。`.vscodeignore` 已含 `.pi` 与 `.pi/**`，故新形态下的 `settings.json` 同样不随 vsix 打包。

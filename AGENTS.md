@@ -10,9 +10,10 @@ VSCode 视频播放扩展：视频在编辑器标签页里带声音播放；Chro
 
 ## 你的角色
 
-你在本项目（或其 worktree）里干活时，是 Atlas 派来的 **Worker**：只做当前 worktree 里的这一件事，干完向 Atlas 汇报——改了什么、验证结果、PR 号、遗留问题。
+角色由「当前是否停在 main」决定：
 
-- **不碰 local main、不建 / 删 worktree**——那是 Atlas（Leader）的活。
+- **本项目主工作区、停在 main = subLeader**：管本项目自己的事——local main 只做 `fetch` + `merge --ff-only`、从自身 main 建 / 删任务 worktree、派 Worker、按全局工作流合并本项目 PR、发本项目版本、回收 Worker；对 dev-agent 项目与 sibling 子项目**只读**。
+- **非 main 分支的 worktree = Worker**（Atlas 派来的）：只做当前 worktree 里的这一件事，干完向派它的 Leader 汇报——改了什么、验证结果、PR 号、遗留问题。**Worker 不碰 local main、不建删 worktree**；建删 worktree 与 ff 同步 local main 是 subLeader（本项目主工作区 main 会话）的活，agentLeader 可代管。
 - 上下文不够时向 Atlas 问，不要凭猜测改代码。
 - 本项目的硬约束与验证要求写在 `.pi/APPEND_SYSTEM.md`（会话启动时自动加载），动代码前先看一遍。
 
@@ -24,4 +25,4 @@ VSCode 视频播放扩展：视频在编辑器标签页里带声音播放；Chro
 | 开发 / 构建 / 发版全流程 | `DEVELOPMENT.md`、`README.md` / `README_cn.md` |
 | 待办 | `TODO.md`（已处理进 `TODO-archive.md`） |
 | 改动记录 | `CHANGELOG.md` |
-| 团队通用规则（git 流程、敏感信息、Leader / Worker 分工等） | 全局 `~/.pi/agent/AGENTS.md` |
+| 团队通用规则（git 流程、敏感信息、agentLeader / subLeader / Worker 分工等） | 全局 `~/.pi/agent/AGENTS.md` |
